@@ -1,59 +1,98 @@
 package com.example.rickandmorty
 
-import android.content.Intent
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
-import androidx.core.app.ActivityCompat.startActivityForResult
-import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewbinding.ViewBinding
 import com.bumptech.glide.Glide
+import com.example.rickandmorty.databinding.ButtonBinding
+import com.example.rickandmorty.databinding.ItemRickAndMortyHolderBinding
 
-class RickAndMortyAdapter: ListAdapter<RickAndMortyNW, RecyclerView.ViewHolder>(RickAndMortyDiffCallBack()){
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_rick_and_morty_holder , parent, false)
-        return RickAndMortyHolder(view)
+
+class RickAdapter(
+    private val onButtonClick: () -> Unit,
+    private val onCharacterClick: (episodes: String) -> Unit
+):ListAdapter<RickAndMortySealed, RecyclerView.ViewHolder>(RickAndMortyDiffCallback()) {
+    companion object {
+        const val ITEM_TYPE_CHARACTER = 0
+        const val ITEM_TYPE_BUTTON = 1
     }
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        (holder as RickAndMortyHolder).bind(getItem(position))
-
-        holder.itemView.setOnClickListener(){
-            val intent = Intent(holder.itemView.context, EpisodesActivity::class.java)
-
-            val episodeList = RickAndMortyObject.rickAndMortyList[position].episode
-            intent.putStringArrayListExtra("episodeList", ArrayList(episodeList))
-
-            holder.itemView.context.startActivity(intent)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return when(viewType){
+            ITEM_TYPE_CHARACTER -> {
+                val view = LayoutInflater
+                    .from(parent.context)
+                    .inflate(
+                        R.layout.item_rick_and_morty_holder,
+                        parent,
+                        false
+                    )
+                RickAndMortyViewHolder(view)
+            }
+            ITEM_TYPE_BUTTON -> {
+                val view = LayoutInflater
+                    .from(parent.context)
+                    .inflate(
+                        R.layout.button,
+                        parent,
+                        false
+                    )
+                ButtonViewHolder(view, onButtonClick)
+            }
+            else -> throw java.lang.IllegalArgumentException("Invalid ViewType Provided")
         }
     }
 
-    override fun getItemCount(): Int {
-        return super.getItemCount()
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        when (getItemViewType(position)) {
+            ITEM_TYPE_CHARACTER -> (holder as RickAndMortyViewHolder).bind(getItem(position) as RickAndMortySealed.Character)
+            ITEM_TYPE_BUTTON -> (holder as ButtonViewHolder).bind(getItem(position) as RickAndMortySealed.Button)
+        }
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return when (getItem(position)) {
+            is RickAndMortySealed.Character -> ITEM_TYPE_CHARACTER
+            is RickAndMortySealed.Button -> ITEM_TYPE_BUTTON
+        }
+    }
+    class RickAndMortyViewHolder(private val view: View) : RecyclerView.ViewHolder(view) {
+        fun bind(rickAndMorty: RickAndMortySealed.Character) {
+            view.findViewById<TextView>(R.id.tvName).text = rickAndMorty.character.name
+            view.findViewById<TextView>(R.id.tvGender).text = rickAndMorty.character.gender
+            Glide
+                .with(view.rootView)
+                .load(rickAndMorty.character.image)
+                .into(view.findViewById(R.id.ivIcon))
+        }
+    }
+
+    class ButtonViewHolder(private val view: View, private val onButtonClick: () -> Unit): RecyclerView.ViewHolder(view){
+        fun bind(button: RickAndMortySealed.Button){
+            view.findViewById<Button>(R.id.ivButton).setOnClickListener {
+                onButtonClick()
+            }
+        }
     }
 }
-class RickAndMortyHolder(private val view: View):
-    RecyclerView.ViewHolder(view.rootView){
-    fun bind(rickAndMorty: RickAndMortyNW){
-        view.findViewById<TextView>(R.id.tvName).text = rickAndMorty.name
-        view.findViewById<TextView>(R.id.tvGender).text = rickAndMorty.gender
-        Glide
-            .with(view.rootView)
-            .load(rickAndMorty.image)
-            .into(view.findViewById(R.id.ivIcon))
+class RickAndMortyDiffCallback : DiffUtil.ItemCallback<RickAndMortySealed>() {
+    override fun areItemsTheSame(oldItem: RickAndMortySealed, newItem: RickAndMortySealed): Boolean {
+        return when {
+            oldItem is RickAndMortySealed.Character && newItem is RickAndMortySealed.Character ->
+                oldItem.character.id == newItem.character.id
+            oldItem is RickAndMortySealed.Button && newItem is RickAndMortySealed.Button ->
+                true
+            else -> false
+        }
     }
-}
-class RickAndMortyDiffCallBack : DiffUtil.ItemCallback<RickAndMortyNW>() {
-    override fun areItemsTheSame(
-        oldItem: RickAndMortyNW,
-        newItem: RickAndMortyNW
-    ): Boolean = oldItem == newItem
-    override fun areContentsTheSame(
-        oldItem: RickAndMortyNW,
-        newItem: RickAndMortyNW
-    ): Boolean = oldItem == newItem
+
+    override fun areContentsTheSame(oldItem: RickAndMortySealed, newItem: RickAndMortySealed): Boolean {
+        return oldItem == newItem
+    }
 }
