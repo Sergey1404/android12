@@ -4,6 +4,8 @@ import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface RickAndMortyApi {
     companion object{
@@ -17,5 +19,8 @@ interface RickAndMortyApi {
     }
 
     @GET("character")
-    fun getAllCharacters() : Call<CharacterResponse>
+    fun getAllCharacters(
+        @Query("page")
+        page: String
+    ) : Call<CharacterResponse>
 }
