@@ -1,5 +1,6 @@
 package com.example.rickandmorty
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.lifecycle.ViewModelProvider
@@ -13,7 +14,9 @@ class MainActivity : AppCompatActivity() {
             viewModel.loadNextPage()
         },
         onCharacterClick = {
-
+            val intent = Intent(this, EpisodesActivity::class.java)
+            intent.putStringArrayListExtra("episodeList", ArrayList(it))
+            startActivity(intent)
         } )
     private lateinit var binding: ActivityMainBinding
     private lateinit var viewModel: MainModelView
