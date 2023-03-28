@@ -1,5 +1,7 @@
 package com.example.rickandmorty
 
+import android.content.Intent
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,15 +10,11 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewbinding.ViewBinding
 import com.bumptech.glide.Glide
-import com.example.rickandmorty.databinding.ButtonBinding
-import com.example.rickandmorty.databinding.ItemRickAndMortyHolderBinding
-
 
 class RickAdapter(
     private val onButtonClick: () -> Unit,
-    private val onCharacterClick: (episodes: String) -> Unit
+    private val onCharacterClick: (episodes: List<String>) -> Unit
 ):ListAdapter<RickAndMortySealed, RecyclerView.ViewHolder>(RickAndMortyDiffCallback()) {
     companion object {
         const val ITEM_TYPE_CHARACTER = 0
@@ -51,7 +49,12 @@ class RickAdapter(
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (getItemViewType(position)) {
-            ITEM_TYPE_CHARACTER -> (holder as RickAndMortyViewHolder).bind(getItem(position) as RickAndMortySealed.Character)
+            ITEM_TYPE_CHARACTER -> {
+                (holder as RickAndMortyViewHolder).bind(getItem(position) as RickAndMortySealed.Character)
+                holder.itemView.setOnClickListener {
+                    onCharacterClick((getItem(position) as RickAndMortySealed.Character).character.episode)
+                }
+            }
             ITEM_TYPE_BUTTON -> (holder as ButtonViewHolder).bind(getItem(position) as RickAndMortySealed.Button)
         }
     }
