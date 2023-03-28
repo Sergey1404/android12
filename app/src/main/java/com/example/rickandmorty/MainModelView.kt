@@ -18,7 +18,6 @@ class MainModelView : ViewModel() {
         loadAllCharacters(page.toString())
     }
 
-
     private fun loadAllCharacters(page: String) {
         rickAndMortyAPI.getAllCharacters(page).enqueue(object : Callback<CharacterResponse> {
             override fun onResponse(
@@ -51,6 +50,10 @@ class MainModelView : ViewModel() {
 
     fun loadNextPage() {
         ++page
+        Log.d("page:","$page")
+        if(page == 42){
+            return
+        }
         loadAllCharacters(page.toString())
     }
 }
